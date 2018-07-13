@@ -10,7 +10,6 @@ class Options {
     constructor() {
         this.mobile = false;
         this.url = '';
-        this.filename = '';
         this.ua = DESKTOP_UA;
         this.width = DESKTOP_VIEWPORT.width;
         this.height = DESKTOP_VIEWPORT.height;
@@ -30,11 +29,6 @@ class Options {
              throw new Error("Error url not specified");
         }
 
-        if(!parsedArgs.filename) {
-            throw new Error("Error filename should be specified - filename=screenshotMX");
-        }
-
-        opt.filename = parsedArgs.filename;
         opt.url = parsedArgs.url;
 
         if(parsedArgs.mobile) {

@@ -7,7 +7,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Index used to test server
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Println("Server working")
-	fmt.Fprint(w, "Response from docker container")
+	fmt.Fprint(w, "Server working")
 }
