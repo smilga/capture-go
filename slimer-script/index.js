@@ -16,6 +16,11 @@ if(!slimer.isExiting()) {
     webpage.clipRect = { width: Number(options.width), height: Number(options.height) };
     webpage.settings.userAgent = options.ua;
 
+    webpage.onError = function() {
+        // Dont output pages errors
+        return;
+    }
+
     webpage
         .open(options.url)
         .then(function(){

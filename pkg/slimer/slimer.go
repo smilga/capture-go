@@ -1,26 +1,15 @@
 package slimer
 
 import (
-	"bytes"
-	"context"
 	"errors"
 	"fmt"
-	"os"
-	"os/exec"
-	"syscall"
 	"time"
 
 	capture "github.com/smilga/capture-go"
+	"github.com/smilga/capture-go/pkg/shell"
 )
 
-// for local testing
-const (
-	slimerPath  = "/home/maxtraffic/Projects/scratch/slimerjs/slimerjs-1.0.0/slimerjs"
-	scriptPath  = "./slimer-script/index.js"
-	firefoxPath = "/home/maxtraffic/Projects/scratch/slimerjs/firefox/firefox"
-)
-
-const timoutSec = 20
+var cmd = "/home/maxtraffic/Projects/scratch/slimerjs/slimerjs-1.0.0/slimerjs ./slimer-script/index.js"
 
 // Error definitions
 var (
@@ -30,40 +19,30 @@ var (
 )
 
 // CaptureURL runs slimer process and takes screenshot of given URL
-// returns base64 encoded image
-func CaptureURL(url capture.URL) (capture.Base64Image, error) {
-	return slimerShoot(string(url))
+func CaptureURL(url capture.URL) (*capture.Image, error) {
+	base64, err := slimerShoot(url)
+	if err != nil {
+		return nil, fmt.Errorf("slimer/CaptureURL: Error creating screenshot. %s", err)
+	}
+
+	return &capture.Image{
+		Encoded: base64,
+		Mime:    capture.PNG,
+	}, nil
 }
 
-func slimerShoot(url string) (capture.Base64Image, error) {
-	var stdout bytes.Buffer
-	ctx, cancel := context.WithTimeout(context.Background(), timoutSec*time.Second)
-	defer cancel()
+func slimerShoot(url capture.URL) (capture.Base64Image, error) {
+	out, err := shell.Exec(&shell.Command{
+		Timeout: time.Duration(time.Second * 40),
+		Env: []string{
+			"SLIMERJSLAUNCHER=/home/maxtraffic/Projects/scratch/slimerjs/firefox/firefox",
+		},
+		Cmd: fmt.Sprintf("%s url=%s", cmd, url),
+	})
 
-	cmd := exec.CommandContext(
-		ctx,
-		slimerPath,
-		scriptPath,
-		fmt.Sprintf("url=%s", url),
-	)
-	cmd.Env = append(os.Environ(),
-		"SLIMERJSLAUNCHER="+firefoxPath,
-	)
-	cmd.Stdout = &stdout
-	err := cmd.Start()
 	if err != nil {
-		return "", fmt.Errorf("%s:  %s", ErrCmd, err)
+		return capture.Base64Image(""), fmt.Errorf("%s, output: %s", err, out)
 	}
 
-	_ = cmd.Wait()
-	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
-
-	switch status.ExitStatus() {
-	case -1:
-		return "", fmt.Errorf("Slimerjs: %s", ErrKilled)
-	case 1:
-		return "", fmt.Errorf("Slimerjs: %s: %s", ErrProcess, stdout.String())
-	}
-
-	return capture.Base64Image(stdout.String()), nil
+	return capture.Base64Image(out), nil
 }
