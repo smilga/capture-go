@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,8 +12,10 @@ import (
 func main() {
 
 	r := httprouter.New()
-	r.GET("/", handler.Index)
-	r.GET("/url/capture", handler.Capture)
 
+	r.GET("/capture/url", handler.Capture)
+	r.POST("/compress/image", handler.Compress)
+
+	fmt.Println("Server started on 8888 port")
 	log.Fatal(http.ListenAndServe(":8888", r))
 }

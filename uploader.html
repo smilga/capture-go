@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <input type="file" name="image">
+
+    <script>
+        let input = document.querySelector('input');
+
+        input.addEventListener('change', (e) => {
+            console.log(e.target.files);
+            fetch('http://localhost:8888', {
+                method: 'POST',
+                body: JSON.stringify(imageObject(e.target.files[0]))
+            })
+        })
+
+        const imageObject = file => {
+            console.log('file')
+            return new Promise((res, rej) => {
+
+            })
+            const reader = new FileReader;
+            reader.onload = () => res
+        }
+    </script>
+</body>
+</html>

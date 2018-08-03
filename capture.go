@@ -31,9 +31,9 @@ type URL string
 
 // Image contains base64 encoded image and string compression
 type Image struct {
-	Encoded     Base64Image
-	Mime        MimeType
-	Compression *Compression
+	Encoded     Base64Image  `json:"image"`
+	Mime        MimeType     `json:"mimeType"`
+	Compression *Compression `json:"-"`
 }
 
 // Base64Image stores encoded image string
