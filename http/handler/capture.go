@@ -33,6 +33,8 @@ func Capture(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	if err := image.Compress(img); err != nil && err != image.ErrNoCompression {
+		logger.Info("Setting compression")
+		logger.Error(fmt.Sprintf("Error: compresing error %s", err))
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}

@@ -1,4 +1,4 @@
-const { 
+const {
     MOBILE_VIEWPORT,
     DESKTOP_VIEWPORT,
     MOBILE_UA,

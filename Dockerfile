@@ -16,23 +16,27 @@ RUN apk update && apk upgrade && \
 	dep ensure -vendor-only
 
 
-RUN go build -v -o capture-go ./cmd/main.go
-#CMD ["./capture-go"]
-
+RUN go build -v -o capture-go cmd/capture-go-web/main.go
 
 # Run stage
 # ========================================================
 FROM evpavel/slimerjs-alpine:latest
 
-WORKDIR /root/capture-go
+RUN apk --update add --no-cache git autoconf automake build-base libtool nasm pngquant
 
-# Create screenshots folder
-RUN mkdir screenshots
+WORKDIR /root
+
+#RUN git clone git://github.com/mozilla/mozjpeg.git && \
+#    cd mozjpeg && \
+#    git checkout v3.1 && \
+#    autoreconf -fiv && ./configure --prefix=/usr && make install
+
+WORKDIR /root/capture-go
 
 # copy compiled project
 COPY --from=builder /go/src/github.com/smilga/capture-go/capture-go ./
 
 # copy slimer scripts
-COPY --from=builder /go/src/github.com/smilga/capture-go/slimer-script/ ./slimer-scripts/
+COPY --from=builder /go/src/github.com/smilga/capture-go/slimer-script/ ./slimer-script/
 
-#CMD ["./capture-go"]
+CMD ["./capture-go"]

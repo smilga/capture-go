@@ -6,10 +6,12 @@ import (
 	"time"
 
 	capture "github.com/smilga/capture-go"
+	"github.com/smilga/capture-go/pkg/logger"
 	"github.com/smilga/capture-go/pkg/shell"
 )
 
-var cmd = "/home/maxtraffic/Projects/scratch/slimerjs/slimerjs-1.0.0/slimerjs ./slimer-script/index.js"
+var slimerBin = "slimerjs"
+var slimerScript = "slimer-script/index.js"
 
 // Error definitions
 var (
@@ -32,12 +34,11 @@ func CaptureURL(url capture.URL) (*capture.Image, error) {
 }
 
 func slimerShoot(url capture.URL) (capture.Base64Image, error) {
+	logger.Info(fmt.Sprintf("Executing command %s %s url=%s", slimerBin, slimerScript, url))
+
 	out, err := shell.Exec(&shell.Command{
 		Timeout: time.Duration(time.Second * 40),
-		Env: []string{
-			"SLIMERJSLAUNCHER=/home/maxtraffic/Projects/scratch/slimerjs/firefox/firefox",
-		},
-		Cmd: fmt.Sprintf("%s url=%s", cmd, url),
+		Cmd:     fmt.Sprintf("%s %s url=%s", slimerBin, slimerScript, url),
 	})
 
 	if err != nil {
