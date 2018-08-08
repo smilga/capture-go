@@ -33,10 +33,10 @@ RUN apk --update add --no-cache \
 
 WORKDIR /root
 
-#RUN git clone git://github.com/mozilla/mozjpeg.git && \
-#    cd mozjpeg && \
-#    git checkout v3.1 && \
-#    autoreconf -fiv && ./configure --prefix=/usr && make install
+RUN git clone git://github.com/mozilla/mozjpeg.git && \
+    cd mozjpeg && \
+    git checkout v3.1 && \
+    autoreconf -fiv && ./configure --prefix=/opt/mozjpeg && make install
 
 WORKDIR /root/capture-go
 

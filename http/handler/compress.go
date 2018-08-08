@@ -18,6 +18,7 @@ func Compress(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		writeError(w, http.StatusUnprocessableEntity, err)
 		return
 	}
+	img.Compression = &capture.Compression{}
 
 	err = image.Compress(img)
 	if err != nil {

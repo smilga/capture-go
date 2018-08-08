@@ -12,6 +12,7 @@ type errorResponse struct {
 
 func writeError(w http.ResponseWriter, status int, err error) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(&errorResponse{
 		Error:  err.Error(),
@@ -21,6 +22,7 @@ func writeError(w http.ResponseWriter, status int, err error) {
 
 func writeSuccess(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
 }

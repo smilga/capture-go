@@ -10,6 +10,7 @@ import (
 	"time"
 
 	capture "github.com/smilga/capture-go"
+	"github.com/smilga/capture-go/pkg/logger"
 	"github.com/smilga/capture-go/pkg/shell"
 )
 
@@ -21,7 +22,7 @@ var (
 )
 
 func jpegCmd(fn string) string {
-	return fmt.Sprintf("cat %s | base64 -d | cjpeg -quality 80 | base64", fn)
+	return fmt.Sprintf("cat %s | base64 -d | /opt/mozjpeg/bin/cjpeg -quality 80 | base64", fn)
 }
 func pngCmd(fn string) string {
 	return fmt.Sprintf("cat %s | base64 -d | pngquant 256 | base64", fn)
@@ -56,7 +57,7 @@ func Compress(image *capture.Image) error {
 		Cmd:     cmdString,
 	})
 	if err != nil {
-		fmt.Println("error", err)
+		logger.Error(err.Error())
 	}
 
 	if len(out) > 0 {

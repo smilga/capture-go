@@ -3,29 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <title></title>
+    <style>
+        .images {
+            display: flex;
+        }
+        .images > .wrapper {
+            position: relative;
+        }
+        .images > .wrapper > img {
+            object-fit: contain;
+            margin: 5px;
+            max-width: 1000px;
+        }
+        .images > .wrapper > .size {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: red;
+            margin: 10px;
+            font-size: 50px;
+        }
+    </style>
 </head>
 <body>
     <input type="file" name="image">
+    <div class="images">
+        <div class="wrapper">
+            <img class="before-compress"></img>
+            <div class="size before"></div>
+        </div>
+        <div class="wrapper">
+            <img class="after-compress"></img>
+            <div class="size after"></div>
+        </div>
+    </div>
 
     <script>
-        let input = document.querySelector('input');
+        let input = document.querySelector('input'),
+            imgBefore = document.querySelector('.before-compress'),
+            imgAfter = document.querySelector('.after-compress'),
+            sizeBefore = document.querySelector('.size.before'),
+            sizeAfter = document.querySelector('.size.after')
+            getMime = prefix => {
+                return prefix.split(';')[0].split(':')[1];
+            },
+            measure = json => {
+                imgAfter.src = `data:${json.mimeType};base64,${json.image}`;
+                fetch(`data:${json.mimeType};base64,${json.image}`)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        sizeAfter.innerHTML = formatBytes(blob.size);
+                        console.log('Size after compress: ', blob.size);
+                    });
+            },
+            imageObject = file => {
+                return new Promise((res, rej) => {
+                    console.log('Size before compress: ', file.size);
+                    sizeBefore.innerHTML = formatBytes(file.size);
+                    const reader = new FileReader;
+                    reader.onload = () => {
+                        imgBefore.src = reader.result;
+                        let [prefix, dataURL] = reader.result.split(',');
+                        return res(JSON.stringify({
+                            image: dataURL,
+                            mimeType: getMime(prefix),
+                        }));
+                    };
+                    reader.readAsDataURL(file);
+                    reader.onerror = err => rej(err)
+                });
+            },
+            formatBytes = bytes => {
+                if(bytes < 1024) return bytes + " Bytes";
+                else if(bytes < 1048576) return(bytes / 1024).toFixed(3) + " KB";
+                else if(bytes < 1073741824) return(bytes / 1048576).toFixed(3) + " MB";
+                else return(bytes / 1073741824).toFixed(3) + " GB";
+            };
 
-        input.addEventListener('change', (e) => {
-            console.log(e.target.files);
-            fetch('http://localhost:8888', {
-                method: 'POST',
-                body: JSON.stringify(imageObject(e.target.files[0]))
+            input.addEventListener('change', (e) => {
+                imageObject(e.target.files[0])
+                    .then(image => {
+                        return fetch('http://localhost:9999/compress/image', {
+                            method: 'POST',
+                            body: image,
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(json => measure(json))
+                    .catch(err => console.log(err));
             })
-        })
 
-        const imageObject = file => {
-            console.log('file')
-            return new Promise((res, rej) => {
-
-            })
-            const reader = new FileReader;
-            reader.onload = () => res
-        }
     </script>
 </body>
 </html>

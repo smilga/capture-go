@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+
+	"github.com/smilga/capture-go/pkg/logger"
 )
 
 // Error definitions
@@ -55,7 +57,7 @@ type MimeType string
 func (t MimeType) Ext() string {
 	ext, ok := supported[t]
 	if !ok {
-		fmt.Println("Error returning extension from mime type")
+		logger.Error("Error returning extension from mime type")
 	}
 	return ext
 }
