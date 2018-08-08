@@ -9,6 +9,8 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
+
+	"github.com/smilga/capture-go/pkg/logger"
 )
 
 // Constant definitions
@@ -28,6 +30,7 @@ type Command struct {
 // Exec executes command and returns stdOut or stdErr and error
 // Checks for stdout, stderr because slimer doesn`t return to stderr
 func Exec(c *Command) (string, error) {
+	logger.Info(fmt.Sprintf("Executing command: %s", c.Cmd))
 	var stdout, stderr bytes.Buffer
 	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
 	defer cancel()

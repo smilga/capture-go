@@ -20,9 +20,16 @@ RUN go build -v -o capture-go cmd/capture-go-web/main.go
 
 # Run stage
 # ========================================================
-FROM evpavel/slimerjs-alpine:latest
+FROM evpavel/slimerjs-alpine:57
 
-RUN apk --update add --no-cache git autoconf automake build-base libtool nasm pngquant
+RUN apk --update add --no-cache \
+    git \
+    autoconf \
+    automake \
+    build-base \
+    libtool \
+    nasm \
+    pngquant
 
 WORKDIR /root
 

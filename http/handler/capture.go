@@ -7,7 +7,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 	capture "github.com/smilga/capture-go"
 	"github.com/smilga/capture-go/pkg/image"
-	"github.com/smilga/capture-go/pkg/logger"
 	"github.com/smilga/capture-go/pkg/slimer"
 )
 
@@ -20,9 +19,12 @@ func Capture(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	logger.Info("This is info from capture called")
+	device := slimer.Desktop
+	if mobile := r.URL.Query().Get("mobile"); mobile == "true" {
+		device = slimer.Mobile
+	}
 
-	img, err := slimer.CaptureURL(url)
+	img, err := slimer.CaptureURL(url, device)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
@@ -33,8 +35,6 @@ func Capture(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	if err := image.Compress(img); err != nil && err != image.ErrNoCompression {
-		logger.Info("Setting compression")
-		logger.Error(fmt.Sprintf("Error: compresing error %s", err))
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}

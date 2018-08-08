@@ -6,8 +6,15 @@ import (
 	"time"
 
 	capture "github.com/smilga/capture-go"
-	"github.com/smilga/capture-go/pkg/logger"
 	"github.com/smilga/capture-go/pkg/shell"
+)
+
+type Device string
+
+// Constant definitions
+const (
+	Desktop Device = "desktop"
+	Mobile  Device = "mobile"
 )
 
 var slimerBin = "slimerjs"
@@ -21,8 +28,8 @@ var (
 )
 
 // CaptureURL runs slimer process and takes screenshot of given URL
-func CaptureURL(url capture.URL) (*capture.Image, error) {
-	base64, err := slimerShoot(url)
+func CaptureURL(url capture.URL, dev Device) (*capture.Image, error) {
+	base64, err := slimerShoot(url, dev)
 	if err != nil {
 		return nil, fmt.Errorf("slimer/CaptureURL: Error creating screenshot. %s", err)
 	}
@@ -33,12 +40,10 @@ func CaptureURL(url capture.URL) (*capture.Image, error) {
 	}, nil
 }
 
-func slimerShoot(url capture.URL) (capture.Base64Image, error) {
-	logger.Info(fmt.Sprintf("Executing command %s %s url=%s", slimerBin, slimerScript, url))
-
+func slimerShoot(url capture.URL, dev Device) (capture.Base64Image, error) {
 	out, err := shell.Exec(&shell.Command{
 		Timeout: time.Duration(time.Second * 40),
-		Cmd:     fmt.Sprintf("%s %s url=%s", slimerBin, slimerScript, url),
+		Cmd:     fmt.Sprintf("%s %s url=%s %s=true", slimerBin, slimerScript, url, dev),
 	})
 
 	if err != nil {
