@@ -2,11 +2,11 @@ package shell
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"time"
 
@@ -30,39 +30,69 @@ type Command struct {
 // Exec executes command and returns stdOut or stdErr and error
 // Checks for stdout, stderr because slimer doesn`t return to stderr
 func Exec(c *Command) (string, error) {
-	logger.Info(fmt.Sprintf("Executing command: %s", c.Cmd))
+	return ExecPipe([]*Command{c})
+}
+
+// ExecPipe executes multiple commands in pipe
+func ExecPipe(commands []*Command) (string, error) {
 	var stdout, stderr bytes.Buffer
-	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
-	defer cancel()
+	cmds := make([]*exec.Cmd, len(commands))
+	info := make([]string, len(commands))
 
-	cmd := exec.CommandContext(ctx, "bash", "-c", c.Cmd)
-	if len(c.Env) > 0 {
-		cmd.Env = append(os.Environ(), c.Env...)
-	}
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err := cmd.Start()
-	if err != nil {
-		return "", fmt.Errorf("%s, %s", ErrExecutingCmd, err)
+	for i, c := range commands {
+		info[i] = fmt.Sprintf("%s | ", c.Cmd)
+		name, arrgs := splitCmd(c.Cmd)
+		cmd := exec.Command(name, arrgs...)
+		if len(c.Env) > 0 {
+			cmd.Env = append(os.Environ(), c.Env...)
+		}
+		cmds[i] = cmd
 	}
 
-	_ = cmd.Wait()
-	status := cmd.ProcessState.Sys().(syscall.WaitStatus)
+	logger.Info(fmt.Sprintf("Executing commands: %s", info))
 
-	switch status.ExitStatus() {
-	case -1:
-		return "", fmt.Errorf("%s: %s", ErrProcessKilled, errOut(stdout, stderr))
-	case 1:
-		return "", fmt.Errorf("%s: %s", ErrProcessExited, errOut(stdout, stderr))
+	// to kill process and all childs
+	cmds[0].SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	time.AfterFunc(commands[0].Timeout, func() {
+		syscall.Kill(-cmds[0].Process.Pid, syscall.SIGKILL)
+	})
+
+	// pipe aoutputs to inputs
+	cmds[0].Stderr = &stdout
+	for i, cmd := range cmds {
+		if i < len(cmds)-1 {
+			cmds[i+1].Stdin, _ = cmd.StdoutPipe()
+			cmds[i+1].Stderr = &stderr
+		} else {
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+		}
+	}
+
+	// start processes in descending order
+	for i := len(cmds) - 1; i > 0; i-- {
+		if err := cmds[i].Start(); err != nil {
+			return stderr.String(), err
+		}
+	}
+	// run the first process
+	if err := cmds[0].Run(); err != nil {
+		return stderr.String(), err
+	}
+	// wait on processes in ascending order
+	for i := 1; i < len(cmds); i++ {
+		if err := cmds[i].Wait(); err != nil {
+			return stderr.String(), err
+		}
 	}
 
 	return stdout.String(), nil
 }
 
-func errOut(stdout bytes.Buffer, stderr bytes.Buffer) string {
-	if len(stderr.String()) < 1 {
-		return stdout.String()
+func splitCmd(s string) (string, []string) {
+	split := strings.Split(s, " ")
+	if len(split) > 1 {
+		return split[0], split[1:]
 	}
-	return stderr.String()
+	return split[0], []string{}
 }

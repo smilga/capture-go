@@ -42,7 +42,7 @@ func CaptureURL(url capture.URL, dev Device) (*capture.Image, error) {
 
 func slimerShoot(url capture.URL, dev Device) (capture.Base64Image, error) {
 	out, err := shell.Exec(&shell.Command{
-		Timeout: time.Duration(time.Second * 40),
+		Timeout: time.Duration(time.Second * 20),
 		Cmd:     fmt.Sprintf("%s %s url=%s %s=true", slimerBin, slimerScript, url, dev),
 	})
 

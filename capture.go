@@ -22,7 +22,7 @@ const (
 	PNG  MimeType = "image/png"
 )
 
-var supported = map[MimeType]string{
+var Supported = map[MimeType]string{
 	JPEG: ".jpeg",
 	JPG:  ".jpg",
 	PNG:  ".png",
@@ -55,7 +55,7 @@ type MimeType string
 
 // Ext retursn extension from mime type
 func (t MimeType) Ext() string {
-	ext, ok := supported[t]
+	ext, ok := Supported[t]
 	if !ok {
 		logger.Error("Error returning extension from mime type")
 	}
