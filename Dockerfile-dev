@@ -1,0 +1,35 @@
+FROM golang:1.12.4-stretch
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    autoconf \
+    automake \
+    libtool \
+    nasm \
+    pngquant \
+    curl \
+    gnupg \
+    libx11-xcb1 \
+    libxrandr2 \
+    libasound2 \
+    libpangocairo-1.0-0 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libnss3 \
+    libxss1 \
+    libxtst-dev
+
+RUN curl -sL https://deb.nodesource.com/setup_11.x  | bash -
+RUN apt-get -y install nodejs
+
+RUN git clone git://github.com/mozilla/mozjpeg.git && \
+    cd mozjpeg && \
+    git checkout v3.3.1 && \
+    autoreconf -fiv && ./configure --prefix=/opt/mozjpeg && make install
+
+RUN go get github.com/markbates/refresh
+
+WORKDIR /app
+
+CMD ["refresh run"]

@@ -1,40 +1,49 @@
 package logger
 
 import (
-	"io"
 	"log"
 	"os"
 )
 
-var (
-	errorLogger *log.Logger
-	infoLogger  *log.Logger
+// var (
+// 	errorLogger *log.Logger
+// 	infoLogger  *log.Logger
+// )
+
+var errorLogger = log.New(os.Stdout,
+	"ERROR: ",
+	log.Ldate|log.Ltime|log.Lshortfile,
 )
 
-func init() {
-	errorF, err := os.OpenFile("error_log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal("Failed to open log file", err)
-	}
+var infoLogger = log.New(os.Stdout,
+	"INFO: ",
+	log.Ldate|log.Ltime|log.Lshortfile,
+)
 
-	infoF, err := os.OpenFile("info_log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatal("Failed to open log file", err)
-	}
+// func init() {
+// errorF, err := os.OpenFile("error_log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+// if err != nil {
+// 	log.Fatal("Failed to open log file", err)
+// }
 
-	multiError := io.MultiWriter(errorF, os.Stdout)
-	multiInfo := io.MultiWriter(infoF, os.Stdout)
+// infoF, err := os.OpenFile("info_log.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+// if err != nil {
+// 	log.Fatal("Failed to open log file", err)
+// }
 
-	errorLogger = log.New(multiError,
-		"ERROR: ",
-		log.Ldate|log.Ltime|log.Lshortfile,
-	)
+// multiError := io.MultiWriter(errorF, os.Stdout)
+// multiInfo := io.MultiWriter(infoF, os.Stdout)
 
-	infoLogger = log.New(multiInfo,
-		"ERROR: ",
-		log.Ldate|log.Ltime|log.Lshortfile,
-	)
-}
+// errorLogger = log.New(os.Stdout,
+// 	"ERROR: ",
+// 	log.Ldate|log.Ltime|log.Lshortfile,
+// )
+
+// infoLogger = log.New(os.Stdout,
+// 	"INFO: ",
+// 	log.Ldate|log.Ltime|log.Lshortfile,
+// )
+// }
 
 // Error logs passed message
 func Error(m string) {

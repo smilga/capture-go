@@ -3,11 +3,16 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	capture "github.com/smilga/capture-go"
+	"github.com/smilga/capture-go/pkg/browser"
 	"github.com/smilga/capture-go/pkg/image"
-	"github.com/smilga/capture-go/pkg/slimer"
+)
+
+const (
+	AcceptJson = "application/json"
 )
 
 // Capture receives url, compression settings and response settings from url query
@@ -19,12 +24,12 @@ func Capture(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	device := slimer.Desktop
-	if mobile := r.URL.Query().Get("mobile"); mobile == "true" {
-		device = slimer.Mobile
+	d := &browser.Dimensions{
+		Width:  r.URL.Query().Get("width"),
+		Height: r.URL.Query().Get("height"),
 	}
 
-	img, err := slimer.CaptureURL(url, device)
+	img, err := browser.Screenshot(url, d, browser.Device(r.URL.Query().Get("device")))
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
@@ -39,15 +44,15 @@ func Capture(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	// TODO read Accept header and return response depending on that
-	decoded, err := img.Encoded.Decode()
-	if err != nil {
-		fmt.Println("Error decoding", err)
+	if strings.Contains(r.Header.Get("Accept"), AcceptJson) {
+		writeSuccess(w, img)
+	} else {
+		decoded, err := img.Encoded.Decode()
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, err)
+			return
+		}
+		w.Header().Set("Content-Type", img.Mime.String())
+		fmt.Fprint(w, decoded)
 	}
-	w.Header().Set("Content-Type", img.Mime.String())
-	fmt.Fprint(w, decoded)
-
-	// To write json response
-
-	//writeSuccess(w, img)
 }

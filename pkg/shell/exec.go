@@ -9,8 +9,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/smilga/capture-go/pkg/logger"
 )
 
 // Constant definitions
@@ -18,6 +16,7 @@ var (
 	ErrProcessKilled = errors.New("Shell: Error process killed")
 	ErrProcessExited = errors.New("Shell: Error process exited")
 	ErrExecutingCmd  = errors.New("Shell: Error executing command")
+	ErrFromCommand   = errors.New("shell: Command wrote to StdErr")
 )
 
 // Command stores command to be executed
@@ -49,7 +48,8 @@ func ExecPipe(commands []*Command) (string, error) {
 		cmds[i] = cmd
 	}
 
-	logger.Info(fmt.Sprintf("Executing commands: %s", info))
+	fmt.Printf("Executing commands: %s \n", info)
+	//logger.Info(fmt.Sprintf("Executing commands: %s", info))
 
 	// to kill process and all childs
 	cmds[0].SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
@@ -84,6 +84,10 @@ func ExecPipe(commands []*Command) (string, error) {
 		if err := cmds[i].Wait(); err != nil {
 			return stderr.String(), err
 		}
+	}
+
+	if stderr.Len() > 0 {
+		return stderr.String(), ErrFromCommand
 	}
 
 	return stdout.String(), nil

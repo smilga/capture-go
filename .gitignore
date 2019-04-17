@@ -1,3 +1,5 @@
 vendor/
 error_log.txt
 info_log.txt
+pkg/browser/node_modules
+tags
