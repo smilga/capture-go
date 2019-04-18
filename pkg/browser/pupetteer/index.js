@@ -3,9 +3,15 @@ const devices = require('puppeteer/DeviceDescriptors');
 
 const args = process.argv.slice(2);
 const url = args[0];
-const width = args[1];
-const height = args[2];
 const device = args[3];
+
+let width = args[1];
+let height = args[2];
+
+const DEFAULT = {
+    WIDTH: 1920,
+    HEIGHT: 1080
+}
 
 const getDeviceDescriptor = (device) => {
     device = device.replace(/_/g, ' ');
@@ -28,9 +34,10 @@ const getDeviceDescriptor = (device) => {
             await page.emulate(devDesc);
         } else {
             if(width.length === 0 || height.length === 0) {
-                console.error("Invalid dimensions")
-                process.exit();
+                width = DEFAULT.WIDTH;
+                height = DEFAULT.HEIGHT;
             }
+
             await page.setViewport({ width: parseInt(width), height: parseInt(height) })
         }
         await page.goto(url, {waitUntil: 'networkidle2'});
